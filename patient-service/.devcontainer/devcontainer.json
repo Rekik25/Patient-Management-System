@@ -1,0 +1,37 @@
+{
+    "name": "Patient Service Dev Container",
+    "build": {
+        "context": "..",
+        "dockerfile": "../Dockerfile"
+    },
+    
+    "forwardPorts": [4000],
+    
+    "containerEnv": {
+        "SPRING_DATASOURCE_URL": "jdbc:postgresql://patient-service-db:5432/db",
+        "SPRING_DATASOURCE_USERNAME": "admin_user",
+        "SPRING_DATASOURCE_PASSWORD": "password",
+        "SPRING_JPA_HIBERNATE_DDL_AUTO": "update",
+        "SPRING_SQL_INIT_MODE": "never",
+    },
+    
+    "runArgs": [
+        "--network=internal",
+        "--name=patient-service"
+    ],
+    
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "vscjava.vscode-java-pack",
+                "vscjava.vscode-spring-boot-dashboard",
+                "pivotal.vscode-spring-boot",
+                "vmware.vscode-boot-dev-pack",
+                "mtxr.sqltools",
+                "mtxr.sqltools-driver-pg",
+                "rangav.vscode-thunder-client",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    }
+}
