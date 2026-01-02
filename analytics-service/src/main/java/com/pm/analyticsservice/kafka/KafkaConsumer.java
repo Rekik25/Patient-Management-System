@@ -12,14 +12,19 @@ public class KafkaConsumer {
 
     @KafkaListener(topics = "patient", groupId = "analytics-service")
     public void consumeEvent(byte[] event) {
+        log.info("KAFKA LISTENER INVOKED - Message received!");
+        log.info("Received byte array of length: {}", event != null ? event.length : "null");
+    
         // Process the incoming message
         try{
             PatientEvent patientEvent = PatientEvent.parseFrom(event);
             // perform any business related to analytics here
-            log.info("Received PatientEvent: [PatientId={}, PatientName={}, PatientEmail={}]"
-            , patientEvent.getPatientId(), patientEvent.getName(), patientEvent.getEmail());
+            log.info("Received PatientEvent: [PatientId={}, PatientName={}, PatientEmail={}]",
+            patientEvent.getPatientId(),
+            patientEvent.getName(),
+            patientEvent.getEmail());
         } catch (Exception e) {
-            log.error("Error deserializing PatientEvent message: {}", e.getMessage());
+            log.error("Error deserializing PatientEvent: {}", e.getMessage());
         }
     }
 }

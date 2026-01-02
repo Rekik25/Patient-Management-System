@@ -1,4 +1,24 @@
 services:
+  analytics-service:
+    build:
+      context: ./analytics-service
+      dockerfile: Dockerfile
+    container_name: analytics-service-dev
+    volumes:
+      - ./analytics-service:/workspace:cached
+    stdin_open: true
+    tty: true
+    command: sleep infinity
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "4002:4002"
+    depends_on:
+      kafka:
+        condition: service_started
+    networks:
+      - internal
+
   patient-service:
     build:
       context: ./patient-service
@@ -23,6 +43,8 @@ services:
     depends_on:
       patient-db:
         condition: service_healthy
+      kafka:
+        condition: service_started
     networks:
       - internal
 
@@ -48,6 +70,8 @@ services:
     depends_on:
       patient-db:
         condition: service_healthy
+      kafka:
+        condition: service_started
     networks:
       - internal
 
@@ -88,14 +112,12 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 0@kafka:9093
       # Cluster ID (required for KRaft mode)
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
-      
       # Replication factors for single-node setup
-      #KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      #KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      #KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
     volumes:
-      - C:\Users\HP\db_volumes\patient-service-db:/var/lib/postgresql
+      - C:\Users\HP\db_volumes\kafka-data:/var/lib/kafka/data
     ports:
       - "9092:9092"
       - "9094:9094"
