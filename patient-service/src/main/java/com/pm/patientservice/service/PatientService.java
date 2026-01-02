@@ -18,15 +18,19 @@ import com.pm.patientservice.exception.EmailAlreadyExistsException;
 import java.util.UUID;
 import com.pm.patientservice.exception.PatientNotFoundException;
 import com.pm.patientservice.grpc.BillingServiceGrpcClient;
+import com.pm.patientservice.kafka.KafkaProducer;
 
 @Service
 public class PatientService {
     private PatientRepository patientRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
+    private final KafkaProducer kafkaProducer;
 
-    public PatientService(PatientRepository patientRepository, BillingServiceGrpcClient billingServiceGrpcClient) {
+    public PatientService(PatientRepository patientRepository
+        , BillingServiceGrpcClient billingServiceGrpcClient, KafkaProducer kafkaProducer) {
         this.patientRepository = patientRepository;
         this.billingServiceGrpcClient = billingServiceGrpcClient;
+        this.kafkaProducer = kafkaProducer;
     }
 
     // Add methods to interact with the patientRepository
@@ -51,7 +55,8 @@ public class PatientService {
         // Create billing account via gRPC
         billingServiceGrpcClient.createBillingAccount(newPatient.getId().toString(), 
             newPatient.getName(), newPatient.getEmail());
-        
+
+        kafkaProducer.sendEvent(newPatient);
 
         return PatientMapper.toDTO(newPatient);
     }
