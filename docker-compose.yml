@@ -9,8 +9,13 @@ services:
     stdin_open: true
     tty: true
     command: sleep infinity
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "4004:4004"
+    depends_on:
+      kafka:
+        condition: service_started
     networks:
       - internal
 
@@ -53,8 +58,8 @@ services:
       BILLING_SERVICE_ADDRESS: billing-service
       BILLING_SERVICE_GRPC_PORT: 9001
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-    ports:
-      - "4000:4000"
+    #ports:
+      #- "4000:4000"
     depends_on:
       patient-db:
         condition: service_healthy
