@@ -1,0 +1,15 @@
+server:
+    port: 4004
+
+spring:
+    cloud:
+        gateway:
+            routes:
+                - id: user-service
+                  uri: lb://user-service
+                  predicates:
+                    - Path=/users/**
+                - id: order-service
+                  uri: lb://order-service
+                  predicates:
+                    - Path=/orders/**
