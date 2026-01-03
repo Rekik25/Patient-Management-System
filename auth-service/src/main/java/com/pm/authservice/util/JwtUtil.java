@@ -8,6 +8,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import io.jsonwebtoken.JwtException;
+import javax.crypto.SecretKey;
+import io.jsonwebtoken.security.SignatureException;
 
 
 @Component
@@ -28,5 +31,17 @@ public class JwtUtil {
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    public void validateToken(String token) {
+        try{
+            Jwts.parser().verifyWith((SecretKey) secretKey)
+                .build()
+                .parseSignedClaims(token);
+        } catch (SignatureException e){
+            throw new JwtException("Invalid JWT signature");
+        } catch (JwtException e){
+            throw new RuntimeException("Invalid JWT token");
+        }
     }
 }
