@@ -3,7 +3,7 @@ services:
     build:
       context: ./api-gateway
       dockerfile: Dockerfile
-    container_name: api-gateway-dev
+    container_name: dev-api-gateway
     volumes:
       - ./api-gateway:/workspace:cached
     stdin_open: true
@@ -19,11 +19,36 @@ services:
     networks:
       - internal
 
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: dev-auth-service
+    volumes:
+      - ./auth-service:/workspace:cached
+    stdin_open: true
+    tty: true
+    command: sleep infinity
+    environment:
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-auth-service:5432/db
+      SPRING_DATASOURCE_USERNAME: admin_user
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_SQL_INIT_MODE: always
+      JWT_SECRET:  myVerySecureSecretKeyForJwtTokensThatIsAtLeast32CharactersLongForHS256Algorithm
+    ports:
+      - "4005:4005"
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - internal
+
   analytics-service:
     build:
       context: ./analytics-service
       dockerfile: Dockerfile
-    container_name: analytics-service-dev
+    container_name: dev-analytics-service
     volumes:
       - ./analytics-service:/workspace:cached
     stdin_open: true
@@ -43,12 +68,12 @@ services:
     build:
       context: ./patient-service
       dockerfile: Dockerfile
-    container_name: patient-service-dev
+    container_name: dev-patient-service
     volumes:
       - ./patient-service:/workspace:cached
     command: sleep infinity
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-service-db:5432/db
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-patient-service:5432/db
       SPRING_DATASOURCE_USERNAME: admin_user
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -72,7 +97,7 @@ services:
     build:
       context: ./billing-service
       dockerfile: Dockerfile
-    container_name: billing-service-dev
+    container_name: dev-billing-service
     volumes:
       - ./billing-service:/workspace:cached
     stdin_open: true
@@ -97,7 +122,7 @@ services:
 
   patient-db:
     image: postgres:latest
-    container_name: patient-service-db
+    container_name: db-patient-service
     restart: unless-stopped
     environment:
       POSTGRES_USER: admin_user
@@ -107,6 +132,26 @@ services:
       - C:\Users\HP\db_volumes\patient-service-db:/var/lib/postgresql
     ports:
       - "5000:5432"
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin_user -d db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-db:
+    image: postgres:latest
+    container_name: db-auth-service
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin_user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    volumes:
+      - C:\Users\HP\db_volumes\auth-service-db:/var/lib/postgresql
+    ports:
+      - "5001:5432"
     networks:
       - internal
     healthcheck:
